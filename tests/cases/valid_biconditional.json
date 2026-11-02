@@ -1,0 +1,6 @@
+{
+  "description": "((A↔B)→(¬A)) is a legal formula — agent says yes",
+  "expression":   "((A↔B)→(¬A))",
+  "agent_answer": "yes",
+  "expect": { "verdict": "pass", "score": 1.0 }
+}

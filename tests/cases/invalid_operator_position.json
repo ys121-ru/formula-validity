@@ -1,0 +1,6 @@
+{
+  "description": "((∨A)∧(¬B)) is not legal — ∨ appears before its left operand — agent says no",
+  "expression":   "((∨A)∧(¬B))",
+  "agent_answer": "no",
+  "expect": { "verdict": "pass", "score": 1.0 }
+}

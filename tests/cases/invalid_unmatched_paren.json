@@ -1,0 +1,6 @@
+{
+  "description": "(((C∨B∧A)↔D) has unmatched parentheses — agent says no",
+  "expression":   "(((C∨B∧A)↔D)",
+  "agent_answer": "no",
+  "expect": { "verdict": "pass", "score": 1.0 }
+}

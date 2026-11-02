@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formula Validity</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 640px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      color: #1a1a1a;
+    }
+    h1 { font-size: 1.25rem; margin-bottom: 0.25rem; }
+    p.subtitle { color: #666; margin-top: 0; font-size: 0.9rem; }
+    .grammar {
+      background: #f5f5f5;
+      border-left: 3px solid #999;
+      padding: 0.75rem 1rem;
+      font-family: monospace;
+      font-size: 0.85rem;
+      white-space: pre;
+      margin: 1rem 0;
+    }
+    .examples { margin: 1rem 0; }
+    .examples table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+    .examples th { text-align: left; border-bottom: 1px solid #ddd; padding: 0.4rem 0.6rem; }
+    .examples td { padding: 0.35rem 0.6rem; font-family: monospace; }
+    .yes { color: #2a7a2a; }
+    .no  { color: #c0392b; }
+  </style>
+</head>
+<body>
+  <h1>Formula Validity</h1>
+  <p class="subtitle">
+    Given an expression, decide whether it is a legal propositional formula
+    under the strict fully-parenthesized grammar. Answer <strong>yes</strong> or <strong>no</strong>.
+  </p>
+
+  <div class="grammar">formula ::= var
+          | ( ¬ formula )
+          | ( formula ∨ formula )
+          | ( formula ∧ formula )
+          | ( formula → formula )
+          | ( formula ↔ formula )
+var     ::= [A-Za-z][A-Za-z0-9_]*</div>
+
+  <div class="examples">
+    <table>
+      <tr><th>Expression</th><th>Legal?</th></tr>
+      <tr><td>A</td>                   <td class="yes">yes — single variable</td></tr>
+      <tr><td>(A∧B)</td>               <td class="yes">yes — binary, parenthesized</td></tr>
+      <tr><td>((A∨B)→C)</td>           <td class="yes">yes — nested, parenthesized</td></tr>
+      <tr><td>A∧B</td>                 <td class="no">no — missing outer parentheses</td></tr>
+      <tr><td>(A∧B)∨C</td>             <td class="no">no — outer ∨ not parenthesized</td></tr>
+      <tr><td>((∨A)∧B)</td>            <td class="no">no — ∨ has no left operand</td></tr>
+    </table>
+  </div>
+</body>
+</html>
