@@ -29,7 +29,7 @@ export function renderSubmit(output) {
   return root;
 }
 
-// Registry: task id → renderer function
-export const RENDERERS = {
-  "formula-validity": renderSubmit,
+// Default export keyed by output class name, as NanoAgent expects.
+export default {
+  SubmitOutput: renderSubmit,
 };

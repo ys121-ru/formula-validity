@@ -3,7 +3,7 @@ id: formula-validity
 name: Formula Validity
 version: 0.1.0
 status: ready
-spec: nanoagent.plugin/v0001
+nanoagent: ~=0.5.0
 
 runtime > nanoagent.plugin.manifest.RuntimeConfig:
   type: mcp_stdio
