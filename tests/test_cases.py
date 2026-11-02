@@ -10,12 +10,28 @@ Run with:
 
 import pytest
 from conftest import load_cases
-from task import verify
+
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src", "plugin"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+from slimconfig import build_output
+from contract import SubmitInput, SubmitOutput, Task
+import verifier
+
+
+def _run(case: dict) -> dict:
+    inp = build_output(
+        {"expression": case["expression"], "answer": case["agent_answer"]},
+        SubmitInput,
+    )
+    out = build_output({"verdict": "?", "score": 0.0, "constraints": []}, SubmitOutput)
+    return verifier.verify_task(Task.FORMULA_VALIDITY.value, inp, out, None, "/tmp")
 
 
 @pytest.mark.parametrize("fname,case", load_cases(), ids=[c for c, _ in load_cases()])
 def test_case(fname: str, case: dict) -> None:
-    result = verify(case["expression"], case["agent_answer"])
+    result = _run(case)
     expect = case["expect"]
 
     detail = "\n".join(

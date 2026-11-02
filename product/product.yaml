@@ -1,0 +1,12 @@
+_ > nanoagent.plugin.manifest.ProductConfig:
+tagline: "Decide whether an expression is a legal propositional formula"
+summary: "Given an expression, the agent decides whether it is a well-formed propositional formula under the strict fully-parenthesized grammar taught in formal logic courses. Every compound formula must be wrapped in its own parentheses: (A∧B) is legal, A∧B and (A∧B)∨C are not. The agent answers yes or no, and the verifier checks the answer against the grammar rules."
+highlights:
+  - "Strict fully-parenthesized grammar: every compound formula must be wrapped in its own parentheses"
+  - "Supports all standard connectives: ¬ ∧ ∨ → ↔"
+  - "Multi-character variable names: A, x1, my_var"
+  - "Two constraints checked in order; the first failure stops scoring"
+steps:
+  - "Read the expression given in the task"
+  - "Decide whether it follows the strict fully-parenthesized grammar"
+  - "Call submit with the expression and your answer (yes or no)"

@@ -1,108 +1,77 @@
-"""
-verifier/task.py
-
-Grade an agent's answer to a yes/no formula-validity question.
-
-Constraints (run in order; first failure stops scoring):
-  1. answer-shape     – the agent's answer is exactly "yes" or "no"
-  2. validity-correct – the agent's answer matches is_valid_formula()
-
-Scoring:
-  All constraints pass  →  verdict "pass",  score 1.0
-  Any constraint fails  →  verdict "fail",  score 0.0
-
-Note: there is no "expression-valid" pre-check — the expression being
-judged might intentionally be invalid; that is the whole point of the task.
-"""
+"""Verifier for the formula-validity task and submit tool."""
 
 from __future__ import annotations
 
-import json
-import os
-import sys
+from pathlib import Path
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src", "plugin"))
-
+from contract import SubmitInput, SubmitOutput
 from formula_checker import is_valid_formula
 
 
-# ── Constraints ───────────────────────────────────────────────────────────────
+# ── Constraint helpers ────────────────────────────────────────────────────────
 
-def check_answer_shape(answer: str) -> tuple[bool, str]:
-    """Constraint 1 — is the answer exactly 'yes' or 'no'?"""
-    normalised = answer.strip().lower()
-    if normalised in ("yes", "no"):
-        return True, f"answer shape OK: {normalised!r}"
-    return False, f"expected 'yes' or 'no', got {answer!r}"
-
-
-def check_validity_correct(expression: str, answer: str) -> tuple[bool, str]:
-    """Constraint 2 — does the answer match the checker?"""
-    valid    = is_valid_formula(expression)
-    expected = "yes" if valid else "no"
-    actual   = answer.strip().lower()
-    if actual == expected:
-        return True, f"answer {actual!r} matches checker ({expected!r})"
-    verdict = "a legal formula" if valid else "NOT a legal formula"
-    return False, f"answer {actual!r} is wrong — {expression!r} is {verdict}"
-
-
-# ── Top-level verifier ────────────────────────────────────────────────────────
-
-def verify(expression: str, answer: str) -> dict:
-    """
-    Run all constraints and return a verdict dict:
-
-      {
-        "verdict":     "pass" | "fail",
-        "score":       1.0 | 0.0,
-        "constraints": [
-          {"id": "answer-shape",     "ok": true, "detail": "..."},
-          {"id": "validity-correct", "ok": true, "detail": "..."}
-        ]
-      }
-    """
-    constraints = []
-
-    def run(cid: str, ok: bool, detail: str) -> bool:
-        constraints.append({"id": cid, "ok": ok, "detail": detail})
-        return ok
-
-    ok, detail = check_answer_shape(answer)
-    if not run("answer-shape", ok, detail):
-        return _verdict(False, constraints)
-
-    ok, detail = check_validity_correct(expression, answer)
-    run("validity-correct", ok, detail)
-    return _verdict(ok, constraints)
+def _constraint(cid: str, ok: bool, detail: str) -> dict:
+    return {"id": cid, "ok": ok, "detail": detail}
 
 
 def _verdict(passed: bool, constraints: list[dict]) -> dict:
     return {
+        "valid":       passed,
         "verdict":     "pass" if passed else "fail",
-        "score":       1.0   if passed else 0.0,
+        "score":       1.0 if passed else 0.0,
         "constraints": constraints,
     }
 
 
-# ── CLI ───────────────────────────────────────────────────────────────────────
+# ── Per-call checks ───────────────────────────────────────────────────────────
 
-def main() -> None:
+def verify_input(inp: SubmitInput) -> list[dict]:
+    """Validate the tool's input (called before the tool runs)."""
+    # Input is already type-checked by slimconfig; nothing extra to verify.
+    return []
+
+
+def verify_output(inp: SubmitInput, out: SubmitOutput, workspace: Path) -> dict:
     """
-    Usage:
-      python verifier/task.py "<expression>" "<answer>"
+    Grade the tool's output against the formula-validity checker.
 
-    Examples:
-      python verifier/task.py "((A∨B)∧C)" "yes"
-      python verifier/task.py "(A∧B)∨C"   "no"
+    Constraints (in order):
+      1. answer-shape     — answer is exactly "yes" or "no"
+      2. validity-correct — answer matches is_valid_formula(expression)
     """
-    if len(sys.argv) != 3:
-        print(main.__doc__)
-        sys.exit(1)
+    constraints = []
 
-    _, expression, answer = sys.argv
-    print(json.dumps(verify(expression, answer), indent=2))
+    # Constraint 1 — answer shape
+    normalised = inp.answer.strip().lower()
+    if normalised not in ("yes", "no"):
+        constraints.append(_constraint(
+            "answer-shape", False,
+            f"expected 'yes' or 'no', got {inp.answer!r}",
+        ))
+        return _verdict(False, constraints)
+    constraints.append(_constraint(
+        "answer-shape", True, f"answer shape OK: {normalised!r}",
+    ))
+
+    # Constraint 2 — correctness
+    valid    = is_valid_formula(inp.expression)
+    expected = "yes" if valid else "no"
+    if normalised == expected:
+        constraints.append(_constraint(
+            "validity-correct", True,
+            f"answer {normalised!r} matches checker ({expected!r})",
+        ))
+        return _verdict(True, constraints)
+
+    label = "a legal formula" if valid else "NOT a legal formula"
+    constraints.append(_constraint(
+        "validity-correct", False,
+        f"answer {normalised!r} is wrong — {inp.expression!r} is {label}",
+    ))
+    return _verdict(False, constraints)
 
 
-if __name__ == "__main__":
-    main()
+def verify_task(arguments: SubmitInput, output: SubmitOutput,
+                reference, workspace: str) -> dict:
+    """Top-level task verifier called by NanoAgent after the agent submits."""
+    return verify_output(arguments, output, Path(workspace))
